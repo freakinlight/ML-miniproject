@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Classify Palmer penguin species with a browser-based K-Nearest Neighbours model." />
+    <title>Penguin Neighbourhood — Species Classifier</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="Penguin Neighbourhood home">
+          <svg class="brand-mark" viewBox="0 0 52 52" role="img" aria-label="Penguin icon">
+            <circle cx="26" cy="26" r="25" fill="currentColor" />
+            <ellipse cx="26" cy="29" rx="13" ry="17" fill="#f7fbff" />
+            <circle cx="21.5" cy="20" r="2" fill="#091b2b" />
+            <circle cx="30.5" cy="20" r="2" fill="#091b2b" />
+            <path d="M22 24.5 26 28l4-3.5L26 23z" fill="#ffb25b" />
+          </svg>
+          <span>Penguin<br /><strong>Neighbourhood</strong></span>
+        </a>
+        <div class="model-status" aria-live="polite">
+          <span class="status-dot"></span>
+          <span id="header-status">Loading specimens…</span>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">A small machine-learning field lab</p>
+            <h1>Meet your penguin’s <em>closest relatives.</em></h1>
+            <p class="hero-lede">
+              Enter four measurements. A K-Nearest Neighbours model compares them with real Palmer
+              Archipelago observations and predicts the most likely species—all inside your browser.
+            </p>
+            <div class="hero-tags" aria-label="Project characteristics">
+              <span>Classification</span>
+              <span>KNN · k = <b id="hero-k">7</b></span>
+              <span>Local &amp; private</span>
+            </div>
+          </div>
+          <div class="hero-orbit" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="penguin-shape">
+              <div class="penguin-belly"></div>
+              <div class="penguin-eye eye-left"></div>
+              <div class="penguin-eye eye-right"></div>
+              <div class="penguin-beak"></div>
+            </div>
+            <span class="species-chip chip-adelie">Adelie</span>
+            <span class="species-chip chip-gentoo">Gentoo</span>
+            <span class="species-chip chip-chinstrap">Chinstrap</span>
+          </div>
+        </section>
+
+        <section class="metric-strip" aria-label="Model summary">
+          <article>
+            <span class="metric-label">Complete specimens</span>
+            <strong id="dataset-size">—</strong>
+            <small>Palmer Penguins dataset</small>
+          </article>
+          <article>
+            <span class="metric-label">Held-out accuracy</span>
+            <strong id="accuracy">—</strong>
+            <small>Seeded 80/20 split</small>
+          </article>
+          <article>
+            <span class="metric-label">Macro F1 score</span>
+            <strong id="macro-f1">—</strong>
+            <small>Balanced across 3 classes</small>
+          </article>
+          <article>
+            <span class="metric-label">Detected task</span>
+            <strong class="classification-text">Classification</strong>
+            <small id="task-reason">Target contains category labels</small>
+          </article>
+        </section>
+
+        <section class="workbench" aria-labelledby="workbench-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Try the model</p>
+              <h2 id="workbench-title">Describe a penguin</h2>
+            </div>
+            <label class="k-control" for="k-value">
+              <span>Neighbours (k)</span>
+              <select id="k-value">
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="7" selected>7</option>
+                <option value="9">9</option>
+                <option value="11">11</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="workbench-grid">
+            <form id="prediction-form" class="input-panel">
+              <div class="input-heading">
+                <span class="step-number">01</span>
+                <div>
+                  <h3>Physical measurements</h3>
+                  <p>Move the sliders or enter exact values.</p>
+                </div>
+              </div>
+
+              <div class="measurement-list">
+                <div class="measurement">
+                  <div class="measurement-label">
+                    <label for="bill-length">Bill length</label>
+                    <output id="bill-length-output" for="bill-length">44.5 mm</output>
+                  </div>
+                  <input id="bill-length" name="billLength" type="range" min="32" max="60" step="0.1" value="44.5" />
+                  <div class="range-labels"><span>32</span><span>60 mm</span></div>
+                </div>
+
+                <div class="measurement">
+                  <div class="measurement-label">
+                    <label for="bill-depth">Bill depth</label>
+                    <output id="bill-depth-output" for="bill-depth">17.3 mm</output>
+                  </div>
+                  <input id="bill-depth" name="billDepth" type="range" min="13" max="22" step="0.1" value="17.3" />
+                  <div class="range-labels"><span>13</span><span>22 mm</span></div>
+                </div>
+
+                <div class="measurement">
+                  <div class="measurement-label">
+                    <label for="flipper-length">Flipper length</label>
+                    <output id="flipper-length-output" for="flipper-length">200 mm</output>
+                  </div>
+                  <input id="flipper-length" name="flipperLength" type="range" min="170" max="235" step="1" value="200" />
+                  <div class="range-labels"><span>170</span><span>235 mm</span></div>
+                </div>
+
+                <div class="measurement">
+                  <div class="measurement-label">
+                    <label for="body-mass">Body mass</label>
+                    <output id="body-mass-output" for="body-mass">4,200 g</output>
+                  </div>
+                  <input id="body-mass" name="bodyMass" type="range" min="2600" max="6400" step="25" value="4200" />
+                  <div class="range-labels"><span>2,600</span><span>6,400 g</span></div>
+                </div>
+              </div>
+
+              <button class="primary-button" type="submit">
+                Classify this penguin
+                <span aria-hidden="true">→</span>
+              </button>
+            </form>
+
+            <section id="prediction-card" class="prediction-panel" aria-live="polite">
+              <div class="result-topline">
+                <span class="step-number light">02</span>
+                <span>Model prediction</span>
+              </div>
+              <div class="result-main">
+                <div id="result-avatar" class="result-avatar">?</div>
+                <p id="result-kicker">Ready to explore</p>
+                <h3 id="result-species">Adjust the measurements</h3>
+                <p id="result-description">
+                  Submit the four measurements to find the closest species neighbourhood.
+                </p>
+              </div>
+              <div id="probability-list" class="probability-list" hidden></div>
+              <div id="confidence-note" class="confidence-note" hidden></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="explain-grid">
+          <article class="card scatter-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Decision space</p>
+                <h2>Where does it land?</h2>
+              </div>
+              <div class="legend" aria-label="Species legend">
+                <span><i class="adelie"></i>Adelie</span>
+                <span><i class="chinstrap"></i>Chinstrap</span>
+                <span><i class="gentoo"></i>Gentoo</span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="scatterplot" role="img" aria-label="Scatterplot of bill length and flipper length by penguin species"></canvas>
+            </div>
+            <p class="chart-caption">The outlined point is your penguin. The model uses all four standardized measurements, not only the two shown here.</p>
+          </article>
+
+          <article class="card neighbours-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">Local explanation</p>
+                <h2>Closest specimens</h2>
+              </div>
+            </div>
+            <div id="neighbour-list" class="neighbour-list">
+              <div class="empty-neighbours">Run a prediction to inspect its nearest neighbours.</div>
+            </div>
+          </article>
+        </section>
+
+        <section class="method-section" aria-labelledby="method-title">
+          <div class="method-copy">
+            <p class="eyebrow">Under the hood</p>
+            <h2 id="method-title">Why this is classification</h2>
+            <p>
+              The target is <code>species</code>, which can only be Adelie, Chinstrap, or Gentoo.
+              Because the model predicts one of several labels—not a continuous number—this is a
+              <strong>multiclass classification</strong> problem.
+            </p>
+            <div class="pipeline" aria-label="Machine learning pipeline">
+              <span>4 measurements</span><b>→</b><span>standardize</span><b>→</b><span>find neighbours</span><b>→</b><span>weighted vote</span>
+            </div>
+          </div>
+          <div class="evaluation-card">
+            <div class="evaluation-heading">
+              <div>
+                <span class="metric-label">Evaluation</span>
+                <h3>Confusion matrix</h3>
+              </div>
+              <span id="test-count" class="test-count">— test rows</span>
+            </div>
+            <div id="confusion-matrix" class="matrix-wrap"></div>
+            <p>Rows are actual species; columns are model predictions.</p>
+          </div>
+        </section>
+
+        <section class="dataset-note">
+          <div>
+            <p class="eyebrow">Data provenance</p>
+            <h2>Real observations, honest limitations.</h2>
+          </div>
+          <p>
+            The data were collected near Palmer Station, Antarctica. This educational model only
+            recognizes three species present in that dataset and should not be used for biological
+            field identification outside its scope.
+          </p>
+        </section>
+      </main>
+
+      <footer>
+        <span>Built as a browser-based ML mini project.</span>
+        <a href="https://allisonhorst.github.io/palmerpenguins/" target="_blank" rel="noreferrer">Palmer Penguins dataset ↗</a>
+      </footer>
+    </div>
+  </body>
+</html>
